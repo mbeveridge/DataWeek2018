@@ -1,0 +1,243 @@
+---
+title: "'Introduction to ggplot2' seminar"
+output:
+  github_document: default
+  html_notebook: default
+---
+
+```{r}
+library(tidyverse)
+```
+
+Graham Parsons - Data Scientist
+
+```{r}
+View(diamonds)
+```
+
+```{r}
+myPlot <- qplot(x = carat, y = price, data = diamonds)
+```
+
+```{r}
+qplot(carat, data = diamonds, bins = 10,
+      main = "Carat Histogram", xlab = "Carat", ylab = "Count")
+```
+
+```{r}
+View(mtcars)
+```
+
+```{r}
+qplot(wt, mpg, data = mtcars, ylim = c(0, NA)) # NA means let qplot decide the upper limit
+```
+
+Exercise 1
+
+```{r}
+pkData <- read_csv("pkData.csv")
+demoData <- read_csv("demoData.csv")
+```
+
+Exercise 1.1
+Create a plot of Conc against Time from pkData (in theMangoTraining package)
+```{r}
+qplot(x= Time, y = Conc, data = pkData,
+      main = "Concentration v's Time",
+      xlab = "Time", ylab = "Conc")
+```
+
+Exercise 1.2
+Ensure that the Conc axis ranges from 0 to 2500
+```{r}
+```{r}
+qplot(x = Time, y = Conc, data = pkData,
+      main = "Concentration v's Time",
+      xlab = "Time", ylab = "Conc",
+      ylim = c(0, 2500))
+```
+
+Exercise 1.3
+Create a histogram of weight from demoData
+```{r}
+myHist <- qplot(x = Weight, data = demoData, binwidth = 2)
+ggsave("myPlot.png", plot = myHist)
+```
+
+```{r}
+qplot(mpg, hp, data = mtcars) +
+  lims(x = c(0, 90), y = c(0, 400)) +
+  labs(x = "Miles per Gallon", y = "Horsepower") +
+  ggtitle("My Plot")
+```
+
+```{r}
+qplot(factor(cyl), mpg, data = mtcars, geom = "boxplot")
+```
+
+```{r}
+qplot(mpg, wt, data = mtcars) +
+  geom_smooth(method = "loess")
+```
+
+
+EXERCISES 2
+
+Exercise 2.1
+Create a boxplot of Height against Sex from `demoData`
+
+```{r}
+qplot(x = Sex, y = Height, data = demoData, geom = "boxplot")
+```
+
+Exercise 2.2
+Generate some random numbers using `rnorm()` and draw a simple density plot to display the data
+
+```{r}
+random <- rnorm(100)
+qplot(x = random, geom = "density")
+```
+
+Exercise 2.3
+Create a plot of Conc against Time from pkData
+```{r}
+qplot(x = Time, y = Conc, data = pkData)
+```
+
+Exercise 2.4
+Add a smoothing line to the plot
+```{r}
+qplot(x = Time, y = Conc, data = pkData) +
+  geom_smooth()
+```
+
+Exercise 2.5
+Change the smoothing function in the previous exercise to a linear (`lm`) smoother (not statistically sensible) and remove the error bars
+
+```{r}
+qplot(x = Time, y = Conc, data = pkData) +
+  geom_smooth(method = "lm", se = FALSE)
+```
+
+---
+
+Aesthetics and Groups
+
+```{r}
+View(quakes)
+```
+
+```{r}
+qplot(x = long, y = lat, data = quakes, size = mag, colour = -depth)
+```
+
+```{r}
+qplot(mpg, wt, data = mtcars, colour = factor(cyl))
+```
+
+```{r}
+qplot(mpg, wt, data = mtcars, colour = "blue")
+qplot(mpg, wt, data = mtcars, colour = I("blue"))
+```
+
+If you don't like the actual colours used :
+
+```{r}
+qplot(mpg, wt, data = mtcars, colour = factor(cyl)) +
+  scale_colour_manual(values = c("hotpink", "red", "navy"))
+
+qplot(mpg, wt, data = mtcars, colour = factor(cyl)) +
+  scale_colour_brewer(type = "qual", "Dark2") # ??? dark2 didn't work?
+```
+
+
+EXERCISES 3
+
+Exercise 3.1
+Create a scatter plot of Height against Weight using demoData. Use a different colour to distinguish between males and females and a different plotting symbol dependent upon whether the subject smokes or not
+
+```{r}
+qplot(x = Weight, y = Height, data = demoData, colour = Sex, shape = Smokes)
+```
+
+
+Exercise 3.2
+Increase the size of the points on the previous plot to twice the default size
+```{r}
+qplot(x = Weight, y = Height, data = demoData, colour = Sex, shape = Smokes, size = I(2))
+```
+
+---
+
+Advanced Control of Aesthetics
+
+```{r}
+qplot(x = long, y = lat, data = quakes, size = mag, col = -depth, alpha = I(0.2)) +
+  scale_colour_continuous("Depth", low = "darkred", high = "yellow")
+```
+
+```{r}
+qplot(Time, Conc, data = pkData, geom = "line", group = Subject)
+
+qplot(Time, Conc, data = pkData, geom = "line", col = factor(Subject))
+```
+
+```{r}
+qplot(carat, price, data = diamonds, alpha = I(0.2)) +
+  facet_grid(. ~ cut)
+
+qplot(carat, price, data = diamonds, alpha = I(0.2)) +
+  geom_smooth() +
+  facet_grid(color ~ cut)
+```
+
+
+EXERCISES 4
+
+Exercise 4.1
+Draw a "line" plot of Conc against Time from pkData and colour by Dose
+
+```{r}
+qplot(x = Time, y = Conc, data = pkData, geom = "line", group = Subject, colour = Dose)
+
+qplot(x = Time, y = Conc, data = pkData, geom = "line", group = Subject, colour = factor(Dose))
+```
+
+Exercise 4.2
+Change the previous plot so that each level of Dose is instead represented by a separate panel
+
+```{r}
+qplot(x = Time, y = Conc, data = pkData, geom = "line", group = Subject) +
+  facet_grid(. ~ Dose)
+```
+
+
+Exercise 4.3
+Draw a "line" plot of Conc against Time from pkData. Ensure each Subject is drawn in a different panel and vary the line type by Dose
+
+```{r}
+qplot(x = Time, y = Conc, data = pkData, geom = "line", linetype = factor(Dose)) +
+  facet_wrap(~Subject, nrow = 6)
+```
+
+Exercise 4.4
+Create a plot of Height against Weight from demoData. Panel (facet) the plot to show levels of Sex in the rows and Smokes in the columns
+
+```{r}
+qplot(x = Weight, y = Height, data = demoData) +
+  facet_grid(Sex ~ Smokes)
+```
+
+
+---
+
+```{r}
+qplot(mpg, wt, data = mtcars, col = factor(cyl), size = I(2))
+
+ggplot(mtcars, aes(x = mpg, y = wt, col = factor(cyl))) +
+  geom_point(size = 2)
+```
+
+
+ggplot gallery : Top 50 visualizations
+
